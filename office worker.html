@@ -1,0 +1,570 @@
+import React, { useState } from 'react';
+import { User, Users, CheckCircle, AlertTriangle, Briefcase, Crown, Sparkles, MessageSquare, HeartHandshake, ArrowRight, Loader2 } from 'lucide-react';
+
+// Data for each color personality type
+const colorData = {
+  red: {
+    id: 'red',
+    name: '레드 (Red)',
+    theme: 'red',
+    colorHex: '#EF4444',
+    leader: {
+      title: '레드 타입 리더',
+      keywords: ['#결단력', '#추진력', '#성과중심', '#리더십'],
+      traits: [
+        '목표지향적 리더',
+        '빠른 판단과 실행력',
+        '확실한 결단력',
+        '조직에 강력한 동기부여'
+      ],
+      caution: '과도한 성과 중심 주의'
+    },
+    member: {
+      title: '레드 타입 팀원',
+      keywords: ['#열정적', '#주도적', '#목표실행', '#빠름'],
+      traits: [
+        '빠른 실행형 인재',
+        '목표 집중력 최고',
+        '빠른 성장 가능성',
+        '적극적이며 능동적인 태도'
+      ],
+      caution: '과도한 경쟁심 주의'
+    }
+  },
+  orange: {
+    id: 'orange',
+    name: '오렌지 (Orange)',
+    theme: 'orange',
+    colorHex: '#F97316',
+    leader: {
+      title: '오렌지 타입 리더',
+      keywords: ['#브랜드리더', '#창의성', '#사교적', '#즐거움'],
+      traits: [
+        '독창적인 아이디어 뱅크',
+        '분위기를 주도하는 무드 메이커',
+        '개방적이고 수평적인 소통',
+        '위기를 기회로 바꾸는 순발력'
+      ],
+      caution: '지나친 충동성과 마무리 부족 주의'
+    },
+    member: {
+      title: '오렌지 타입 팀원',
+      keywords: ['#에너지', '#인기쟁이', '#적응력', '#순발력'],
+      traits: [
+        '조직의 활력소 역할',
+        '뛰어난 친화력과 네트워크',
+        '빠른 상황 판단과 적응',
+        '멀티태스킹 능력 우수'
+      ],
+      caution: '집중력 저하 및 산만함 주의'
+    }
+  },
+  yellow: {
+    id: 'yellow',
+    name: '옐로우 (Yellow)',
+    theme: 'yellow',
+    colorHex: '#EAB308',
+    leader: {
+      title: '옐로우 타입 리더',
+      keywords: ['#비전제시', '#아이디어', '#낙천적', '#언변'],
+      traits: [
+        '미래를 내다보는 비전가',
+        '긍정적인 마인드 전파',
+        '탁월한 설득력과 언변',
+        '새로운 프로젝트 기획 능력'
+      ],
+      caution: '비현실적인 목표 설정 주의'
+    },
+    member: {
+      title: '옐로우 타입 팀원',
+      keywords: ['#호기심', '#기획력', '#정보수집', '#희망'],
+      traits: [
+        '반짝이는 아이디어 제공',
+        '새로운 정보 습득 빠름',
+        '팀 내 커뮤니케이션 활성화',
+        '변화를 두려워하지 않는 태도'
+      ],
+      caution: '디테일 부족 및 끈기 부족 주의'
+    }
+  },
+  green: {
+    id: 'green',
+    name: '그린 (Green)',
+    theme: 'green',
+    colorHex: '#22C55E',
+    leader: {
+      title: '그린 타입 리더',
+      keywords: ['#서번트리더십', '#경청', '#평화', '#포용'],
+      traits: [
+        '배려와 경청의 리더십',
+        '안정적인 조직 운영',
+        '갈등을 중재하는 평화주의자',
+        '구성원의 성장을 지원'
+      ],
+      caution: '우유부단함과 느린 결단력 주의'
+    },
+    member: {
+      title: '그린 타입 팀원',
+      keywords: ['#협력', '#안정감', '#평화', '#성실'],
+      traits: [
+        '팀의 화합을 도모하는 조율자',
+        '맡은 바를 묵묵히 수행',
+        '타인에 대한 높은 배려심',
+        '편안하고 안정적인 업무 스타일'
+      ],
+      caution: '변화에 대한 저항감 주의'
+    }
+  },
+  blue: {
+    id: 'blue',
+    name: '시안 (Cyan)',
+    theme: 'cyan',
+    colorHex: '#06B6D4',
+    leader: {
+      title: '시안 타입 리더',
+      keywords: ['#체계적', '#원칙중심', '#조직안정', '#신뢰감'],
+      traits: [
+        '명확한 원칙과 기준 제시',
+        '안정형 관리자 스타일',
+        '꾸준하고 한결같은 태도',
+        '논리적이고 분석적인 판단'
+      ],
+      caution: '융통성이 부족하고 보수적임 주의'
+    },
+    member: {
+      title: '시안 타입 팀원',
+      keywords: ['#책임감', '#성실함', '#규칙준수', '#일관성'],
+      traits: [
+        '성실한 실행형 인재',
+        '업무의 정확성과 명확성 추구',
+        '계획과 규칙 철저 준수',
+        '질서 유지 및 정리정돈'
+      ],
+      caution: '변화에 느리고 융통성 부족 주의'
+    }
+  },
+  navy: {
+    id: 'navy',
+    name: '네이비 (Navy)',
+    theme: 'indigo',
+    colorHex: '#3730A3',
+    leader: {
+      title: '네이비 타입 리더',
+      keywords: ['#권위', '#통찰력', '#전문성', '#본질'],
+      traits: [
+        '깊이 있는 통찰력과 지혜',
+        '강력한 권위와 카리스마',
+        '엄격하지만 공정한 기준',
+        '전문성을 중시하는 경영'
+      ],
+      caution: '지나친 엄격함과 권위주의 주의'
+    },
+    member: {
+      title: '네이비 타입 팀원',
+      keywords: ['#충성심', '#전문가', '#신중함', '#깊이'],
+      traits: [
+        '맡은 분야의 깊이 있는 전문가',
+        '조직에 대한 높은 충성도',
+        '신중하고 무게감 있는 태도',
+        '본질을 꿰뚫는 분석력'
+      ],
+      caution: '고집이 세고 타협하지 않음 주의'
+    }
+  },
+  purple: {
+    id: 'purple',
+    name: '퍼플 (Purple)',
+    theme: 'purple',
+    colorHex: '#9333EA',
+    leader: {
+      title: '퍼플 타입 리더',
+      keywords: ['#예술가', '#직관력', '#고귀함', '#철학'],
+      traits: [
+        '남다른 직관과 영감',
+        '예술적 감각과 미적 추구',
+        '정신적 가치를 중요시함',
+        '신비롭고 카리스마 있는 리더십'
+      ],
+      caution: '현실 감각 부족 및 난해함 주의'
+    },
+    member: {
+      title: '퍼플 타입 팀원',
+      keywords: ['#개성', '#완벽주의', '#품격', '#프라이드'],
+      traits: [
+        '남들과 다른 독특한 관점',
+        '자신의 일에 대한 장인정신',
+        '높은 프라이드와 품격 유지',
+        '창의적이고 감각적인 업무 처리'
+      ],
+      caution: '단체 생활 부적응 및 우울감 주의'
+    }
+  },
+  magenta: {
+    id: 'magenta',
+    name: '마젠타 (Magenta)',
+    theme: 'fuchsia',
+    colorHex: '#C026D3',
+    leader: {
+      title: '마젠타 타입 리더',
+      keywords: ['#박애주의', '#세심함', '#돌봄', '#완벽추구'],
+      traits: [
+        '세심하게 챙기는 어머니 리더십',
+        '작은 디테일도 놓치지 않음',
+        '조직원을 아끼고 보살핌',
+        '이상적인 목표를 향한 헌신'
+      ],
+      caution: '지나친 간섭과 과로 주의'
+    },
+    member: {
+      title: '마젠타 타입 팀원',
+      keywords: ['#봉사', '#헌신', '#치유', '#디테일'],
+      traits: [
+        '타인을 돕는 것에 기쁨을 느킴',
+        '업무의 디테일과 완성도 높음',
+        '조직의 궂은일을 도맡아 함',
+        '따뜻한 치유의 에너지 발산'
+      ],
+      caution: '거절하지 못하고 희생함 주의'
+    }
+  },
+  pink: {
+    id: 'pink',
+    name: '핑크 (Pink)',
+    theme: 'pink',
+    colorHex: '#EC4899',
+    leader: {
+      title: '핑크 타입 리더',
+      keywords: ['#감성리더', '#사랑', '#부드러움', '#행복'],
+      traits: [
+        '부드러운 감성 리더십',
+        '사랑과 칭찬으로 동기부여',
+        '행복한 조직 문화 조성',
+        '여성적이고 섬세한 접근'
+      ],
+      caution: '감정 기복과 의존성 주의'
+    }
+  }
+};
+
+const ColorCard = ({ type, data, color }) => {
+  const isLeader = type === 'leader';
+  
+  const titleStyle = { color: data.colorHex };
+  const bgStyle = { backgroundColor: `${data.colorHex}15` };
+  const dynamicStyle = { borderColor: data.colorHex };
+
+  return (
+    <div className={`bg-white rounded-xl shadow-lg overflow-hidden border-t-4 transition-all duration-300 hover:shadow-xl`} style={dynamicStyle}>
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className={`p-2 rounded-full`} style={bgStyle}>
+              {isLeader ? <Crown size={24} style={titleStyle} /> : <Users size={24} style={titleStyle} />}
+            </div>
+            <h3 className="text-2xl font-bold" style={titleStyle}>
+              {data[type].title}
+            </h3>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mb-6">
+          {data[type].keywords.map((keyword, idx) => (
+            <span key={idx} className="px-3 py-1 rounded-full text-sm font-semibold text-gray-700 bg-gray-100">
+              {keyword}
+            </span>
+          ))}
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="w-full md:w-1/3 min-h-[160px] rounded-lg bg-gray-50 flex flex-col items-center justify-center border border-gray-100">
+             {isLeader ? 
+                <User size={64} style={{ color: data.colorHex, opacity: 0.8 }} /> :
+                <Briefcase size={64} style={{ color: data.colorHex, opacity: 0.8 }} />
+             }
+             <span className="mt-2 text-gray-400 text-sm font-medium">{isLeader ? 'Leader Persona' : 'Member Persona'}</span>
+          </div>
+
+          <div className="w-full md:w-2/3">
+            <ul className="space-y-3">
+              {data[type].traits.map((trait, idx) => (
+                <li key={idx} className="flex items-start">
+                  <CheckCircle size={18} className="mr-2 mt-1 flex-shrink-0" style={{ color: data.colorHex }} />
+                  <span className="text-gray-700 font-medium">{trait}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-6 flex items-start p-3 rounded-lg bg-red-50 border border-red-100">
+              <AlertTriangle size={18} className="text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-red-700 font-semibold">
+                {data[type].caution}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function App() {
+  const [activeColor, setActiveColor] = useState('red');
+  const [partnerColor, setPartnerColor] = useState('blue');
+  const [situation, setSituation] = useState('');
+  
+  // AI States
+  const [chemistryResult, setChemistryResult] = useState('');
+  const [strategyResult, setStrategyResult] = useState('');
+  const [isChemistryLoading, setIsChemistryLoading] = useState(false);
+  const [isStrategyLoading, setIsStrategyLoading] = useState(false);
+
+  const handleColorChange = (colorKey) => {
+    setActiveColor(colorKey);
+    // Reset AI results when color changes to encourage new analysis
+    setChemistryResult('');
+    setStrategyResult('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const apiKey = ""; // API key injected by environment
+
+  const callGemini = async (prompt) => {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error.message);
+      }
+      return data.candidates[0].content.parts[0].text;
+    } catch (error) {
+      console.error('Gemini API Error:', error);
+      return "죄송합니다. AI 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+    }
+  };
+
+  const handleAnalyzeChemistry = async () => {
+    if (isChemistryLoading) return;
+    setIsChemistryLoading(true);
+    setChemistryResult('');
+    
+    const prompt = `
+      당신은 컬러 심리 전문가입니다. 
+      "${colorData[activeColor].name}" 성향을 가진 사람과 "${colorData[partnerColor].name}" 성향을 가진 사람의 직장 내 업무 궁합(Chemistry)을 분석해주세요.
+      
+      다음 형식으로 짧고 굵게 답변해주세요:
+      1. 궁합 점수 (100점 만점)
+      2. 긍정적인 시너지 (한 문장)
+      3. 주의해야 할 충돌 포인트 (한 문장)
+      4. 협업을 위한 꿀팁 (한 문장)
+      
+      말투는 친절하고 전문적이게 해주세요. 한국어로 답변해주세요.
+    `;
+
+    const result = await callGemini(prompt);
+    setChemistryResult(result);
+    setIsChemistryLoading(false);
+  };
+
+  const handleGetStrategy = async () => {
+    if (!situation.trim() || isStrategyLoading) return;
+    setIsStrategyLoading(true);
+    setStrategyResult('');
+
+    const prompt = `
+      당신은 처세술 코치입니다.
+      현재 사용자의 성격 유형은 "${colorData[activeColor].name}" 입니다.
+      사용자가 처한 상황: "${situation}"
+      
+      이 상황에서 "${colorData[activeColor].name}" 성향의 장점을 살려 문제를 해결할 수 있는 구체적인 행동 전략 3가지를 제안해주세요.
+      단점이나 주의사항이 있다면 함께 덧붙여주세요.
+      
+      답변은 한국어로, 격려하는 어조로 작성해주세요.
+    `;
+
+    const result = await callGemini(prompt);
+    setStrategyResult(result);
+    setIsStrategyLoading(false);
+  };
+
+  const currentColorObj = colorData[activeColor];
+
+  return (
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-800 pb-20">
+      {/* Header */}
+      <header className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-orange-400"></div>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">
+              컬러 성격유형 분석 <span className="text-sm font-normal text-gray-400 ml-2">with Gemini AI ✨</span>
+            </h1>
+          </div>
+          <div className="hidden md:block text-sm text-gray-500">
+            나의 컬러 성향을 확인해보세요
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-8">
+        {/* Navigation Sidebar */}
+        <nav className="w-full md:w-64 flex-shrink-0">
+          <div className="bg-white rounded-xl shadow-md p-4 sticky top-24">
+            <h2 className="text-lg font-bold mb-4 text-gray-700 px-2">컬러 선택</h2>
+            <div className="grid grid-cols-2 md:grid-cols-1 gap-2">
+              {Object.values(colorData).map((color) => (
+                <button
+                  key={color.id}
+                  onClick={() => handleColorChange(color.id)}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 w-full text-left
+                    ${activeColor === color.id 
+                      ? 'bg-gray-800 text-white shadow-md transform scale-105' 
+                      : 'hover:bg-gray-100 text-gray-600'
+                    }`}
+                >
+                  <div 
+                    className="w-4 h-4 rounded-full border border-white shadow-sm"
+                    style={{ backgroundColor: color.colorHex }}
+                  ></div>
+                  <span className="font-medium">{color.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </nav>
+
+        {/* Main Content Area */}
+        <div className="flex-1 space-y-8">
+          {/* Header for Selected Color */}
+          <div className="text-center md:text-left">
+            <h2 className="text-3xl md:text-4xl font-extrabold mb-2" style={{ color: currentColorObj.colorHex }}>
+              {currentColorObj.name}
+            </h2>
+            <p className="text-gray-600 text-lg">
+              {currentColorObj.name.split(' ')[0]} 컬러가 가진 고유의 에너지와 성향을 분석합니다.
+            </p>
+          </div>
+
+          {/* AI Features Section - Placed prominently */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            {/* Feature 1: Chemistry Lab */}
+            <div className="bg-white rounded-xl shadow-lg border border-purple-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 text-white flex items-center gap-2">
+                <HeartHandshake size={20} />
+                <h3 className="font-bold text-lg">AI 궁합 연구소</h3>
+              </div>
+              <div className="p-5">
+                <p className="text-sm text-gray-600 mb-4">
+                  나({currentColorObj.name.split(' ')[0]})와 함께 일하는 동료의 컬러를 선택하여 업무 궁합을 확인해보세요.
+                </p>
+                
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1/2 p-2 bg-gray-50 rounded border border-gray-200 text-center font-medium" style={{ color: currentColorObj.colorHex }}>
+                    {currentColorObj.name.split(' ')[0]}
+                  </div>
+                  <span className="text-gray-400">+</span>
+                  <select 
+                    value={partnerColor}
+                    onChange={(e) => setPartnerColor(e.target.value)}
+                    className="w-1/2 p-2 bg-white rounded border border-gray-300 focus:ring-2 focus:ring-purple-500 outline-none"
+                  >
+                    {Object.values(colorData).filter(c => c.id !== activeColor).map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <button 
+                  onClick={handleAnalyzeChemistry}
+                  disabled={isChemistryLoading}
+                  className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                  {isChemistryLoading ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
+                  <span>✨ AI 궁합 분석하기</span>
+                </button>
+
+                {chemistryResult && (
+                  <div className="mt-4 p-4 bg-purple-50 rounded-lg text-sm text-gray-700 whitespace-pre-wrap leading-relaxed animate-in fade-in slide-in-from-top-2">
+                    {chemistryResult}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Feature 2: Situation Strategy */}
+            <div className="bg-white rounded-xl shadow-lg border border-pink-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-pink-500 to-rose-500 p-4 text-white flex items-center gap-2">
+                <MessageSquare size={20} />
+                <h3 className="font-bold text-lg">AI 처세술 코칭</h3>
+              </div>
+              <div className="p-5">
+                <p className="text-sm text-gray-600 mb-4">
+                  현재 직면한 어려운 상황이나 고민을 입력하면, {currentColorObj.name.split(' ')[0]} 타입의 장점을 살린 해결책을 드립니다.
+                </p>
+                
+                <textarea
+                  value={situation}
+                  onChange={(e) => setSituation(e.target.value)}
+                  placeholder="예: 팀장님이 지시사항을 자꾸 바꿔서 힘들어요."
+                  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg mb-4 text-sm focus:ring-2 focus:ring-pink-500 outline-none resize-none h-20"
+                />
+
+                <button 
+                  onClick={handleGetStrategy}
+                  disabled={isStrategyLoading || !situation.trim()}
+                  className="w-full py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isStrategyLoading ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
+                  <span>✨ 맞춤형 전략 받기</span>
+                </button>
+
+                {strategyResult && (
+                  <div className="mt-4 p-4 bg-pink-50 rounded-lg text-sm text-gray-700 whitespace-pre-wrap leading-relaxed animate-in fade-in slide-in-from-top-2">
+                    {strategyResult}
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Standard Static Content */}
+          <div className="relative">
+            <div className="absolute -left-4 top-8 w-1 h-16 rounded-r-lg" style={{ backgroundColor: currentColorObj.colorHex }}></div>
+            <ColorCard 
+              type="leader" 
+              data={currentColorObj} 
+              color={activeColor} 
+            />
+          </div>
+
+          <div className="relative">
+            <div className="absolute -left-4 top-8 w-1 h-16 rounded-r-lg" style={{ backgroundColor: currentColorObj.colorHex }}></div>
+            <ColorCard 
+              type="member" 
+              data={currentColorObj} 
+              color={activeColor} 
+            />
+          </div>
+
+          {/* Footer Info */}
+          <div className="mt-12 text-center text-gray-400 text-sm p-8 border-t border-gray-200">
+            <p>© 2024 Color Personality Analysis. Powered by Gemini.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
