@@ -36,16 +36,18 @@
         .slide-in-from-right { animation-name: slideInRight; }
         .slide-in-from-bottom { animation-name: slideInBottom; }
         .zoom-in { animation-name: zoomIn; }
+
+        /* 모바일 터치 최적화 */
+        button { touch-action: manipulation; }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-900">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
         // --- ICONS (SVG 컴포넌트) ---
-        // Lucide 아이콘을 직접 SVG로 정의하여 외부 의존성을 제거했습니다.
         const ChevronRight = ({ size = 24, className }) => (
             <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"/></svg>
         );
@@ -70,6 +72,537 @@
         const CheckCircle2 = ({ size = 24, className }) => (
             <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
         );
+        const Volume2 = ({ size = 24, className }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        );
+
+        // --- DATA CONSTANTS ---
+        const COLORS_DATA = {
+          red: {
+            id: 'red',
+            name: '빨강 (Red)',
+            chakra: 'Root Chakra',
+            keyword: '활력과 생명력',
+            hex: '#EF4444',
+            bg: 'bg-red-500',
+            lightBg: 'bg-red-50',
+            text: 'text-red-600',
+            diagnosis: "에너지가 고갈되어 재충전이 필요하시군요. 무기력함을 깨우고 현실적인 행동을 시작할 힘이 필요합니다.",
+            prescription: "교감신경을 자극하여 활력을 주는 '에너지 부스터'",
+            tea: "히비스커스 블렌드",
+            teaDesc: "붉은 수색이 시각적으로 아드레날린 분비를 돕고 혈액 순환을 연상시킵니다.",
+            affirmation: "당신에게는 세상을 헤쳐나갈 충분한 열정이 있습니다.",
+            visual: "강렬하게 피어오르는 붉은 꽃의 움직임"
+          },
+          orange: {
+            id: 'orange',
+            name: '주황 (Orange)',
+            chakra: 'Sacral Chakra',
+            keyword: '즐거움과 관계',
+            hex: '#F97316',
+            bg: 'bg-orange-500',
+            lightBg: 'bg-orange-50',
+            text: 'text-orange-600',
+            diagnosis: "최근 심각한 일들로 마음이 경직되지 않았나요? 어린아이 같은 즐거움과 사교적인 에너지가 필요합니다.",
+            prescription: "우울감을 걷어내고 식욕과 기분을 돋우는 '해피 바이타민'",
+            tea: "오렌지 루이보스",
+            teaDesc: "상큼한 향과 주황빛 수색이 소화 기능을 돕고 기분을 고양시킵니다.",
+            affirmation: "즐거움은 당신 곁에 항상 있습니다. 마음껏 웃어보세요.",
+            visual: "따스한 햇살이 부서지는 오렌지빛 바다"
+          },
+          yellow: {
+            id: 'yellow',
+            name: '노랑 (Yellow)',
+            chakra: 'Solar Plexus Chakra',
+            keyword: '지성과 자존감',
+            hex: '#FACC15',
+            bg: 'bg-yellow-400',
+            lightBg: 'bg-yellow-50',
+            text: 'text-yellow-600',
+            diagnosis: "명확한 판단과 자신감이 필요한 순간입니다. 남들의 시선보다는 나 자신의 지혜를 믿으세요.",
+            prescription: "좌뇌를 자극하여 이성적 사고를 돕는 '마인드 클리어'",
+            tea: "캐모마일 & 레몬그라스",
+            teaDesc: "노란 수색이 신경을 이완시키면서도 지적 호기심을 자극합니다.",
+            affirmation: "당신의 아이디어는 빛나고 있습니다. 자신감을 가지세요.",
+            visual: "바람에 일렁이는 황금빛 들판"
+          },
+          green: {
+            id: 'green',
+            name: '초록 (Green)',
+            chakra: 'Heart Chakra',
+            keyword: '균형과 휴식',
+            hex: '#22C55E',
+            bg: 'bg-green-500',
+            lightBg: 'bg-green-50',
+            text: 'text-green-600',
+            diagnosis: "긴장과 스트레스로 지쳐있군요. 마음의 평화를 되찾고 내면의 균형을 맞출 '쉼표'가 필요합니다.",
+            prescription: "교감신경을 완화하고 심박수를 낮추는 '이너 밸런스'",
+            tea: "어린 잎 녹차",
+            teaDesc: "초록색은 근육 이완과 스트레스 해소에 탁월한 효과가 있습니다.",
+            affirmation: "잠시 멈춰도 괜찮습니다. 당신은 충분히 잘하고 있어요.",
+            visual: "깊은 숲속, 나뭇잎 사이로 내리는 빛"
+          },
+          blue: {
+            id: 'blue',
+            name: '파랑 (Blue)',
+            chakra: 'Throat Chakra',
+            keyword: '평온과 소통',
+            hex: '#3B82F6',
+            bg: 'bg-blue-500',
+            lightBg: 'bg-blue-50',
+            text: 'text-blue-600',
+            diagnosis: "흥분된 마음을 가라앉히고 차분한 이성이 필요합니다. 조용히 내면의 소리에 귀 기울여 보세요.",
+            prescription: "맥박을 안정시키고 깊은 호흡을 유도하는 '딥 캄(Deep Calm)'",
+            tea: "버터플라이피 (블루멜로우)",
+            teaDesc: "파란 수색은 부교감 신경을 활성화하여 진정 효과를 줍니다.",
+            affirmation: "모든 것은 순리대로 흐를 것입니다. 평온함을 유지하세요.",
+            visual: "끝없이 깊고 고요한 푸른 밤하늘"
+          },
+          navy: {
+            id: 'navy',
+            name: '남색 (Navy)',
+            chakra: 'Third Eye Chakra',
+            keyword: '직관과 통찰',
+            hex: '#1E3A8A',
+            bg: 'bg-indigo-800',
+            lightBg: 'bg-indigo-50',
+            text: 'text-indigo-900',
+            diagnosis: "눈에 보이는 것 너머의 본질을 찾고 계시군요. 깊은 통찰력과 직관을 통해 내면의 지혜를 발견할 시간입니다.",
+            prescription: "머리를 맑게 하고 집중력을 높여주는 '딥 포커스'",
+            tea: "얼그레이 (Earl Grey)",
+            teaDesc: "진한 수색과 베르가못 향이 정신을 맑게 깨워주고 깊은 사색을 돕습니다.",
+            affirmation: "당신의 깊은 지혜가 올바른 길로 안내할 것입니다.",
+            visual: "밤하늘의 별처럼 반짝이는 깊은 심해"
+          },
+          purple: {
+            id: 'purple',
+            name: '보라 (Purple)',
+            chakra: 'Crown Chakra',
+            keyword: '영감과 치유',
+            hex: '#A855F7',
+            bg: 'bg-purple-500',
+            lightBg: 'bg-purple-50',
+            text: 'text-purple-600',
+            diagnosis: "현실의 문제에서 벗어나 정신적인 회복이 필요합니다. 당신의 직관력과 예술적 영감을 믿으세요.",
+            prescription: "두뇌 활동과 정신적 스트레스 해소를 돕는 '소울 테라피'",
+            tea: "라벤더 티",
+            teaDesc: "보라색 향과 색은 심신이 피로할 때 무의식적인 치유를 돕습니다.",
+            affirmation: "당신의 직관은 답을 알고 있습니다. 내면의 빛을 따르세요.",
+            visual: "신비롭게 일렁이는 보랏빛 오로라"
+          }
+        };
+
+        const QUESTIONS = [
+          {
+            id: 1,
+            q: "지금 내 몸의 상태는 어떤가요?",
+            options: [
+              { text: "무겁고 나른하다", color: "red" },
+              { text: "머리가 복잡하고 뜨겁다", color: "blue" },
+              { text: "어깨가 뭉치고 긴장된다", color: "green" }
+            ]
+          },
+          {
+            id: 2,
+            q: "요즘 가장 듣고 싶은 말은 무엇인가요?",
+            options: [
+              { text: '"넌 할 수 있어! 힘내!"', color: "red" }, 
+              { text: '"좀 쉬어도 괜찮아."', color: "green" },
+              { text: '"너는 소중한 사람이야."', color: "purple" }
+            ]
+          },
+          {
+            id: 3,
+            q: "지금 당장 떠나고 싶은 곳은 어디인가요?",
+            options: [
+              { text: "활기찬 축제의 현장", color: "orange" },
+              { text: "고요한 숲속이나 바다", color: "blue" },
+              { text: "신비로운 고대 유적지", color: "navy" }
+            ]
+          }
+        ];
+
+        // --- COMPONENTS ---
+
+        function RitualPlayer({ color, onComplete }) {
+          const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
+          const [phase, setPhase] = useState('inhale'); // inhale, hold, exhale
+
+          useEffect(() => {
+            if (timeLeft <= 0) {
+              onComplete();
+              return;
+            }
+            const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
+            return () => clearInterval(timer);
+          }, [timeLeft, onComplete]);
+
+          useEffect(() => {
+            const breathTimer = setInterval(() => {
+              setPhase(p => {
+                if (p === 'inhale') return 'hold';
+                if (p === 'hold') return 'exhale';
+                return 'inhale';
+              });
+            }, 4000);
+            return () => clearInterval(breathTimer);
+          }, []);
+
+          const formatTime = (s) => {
+            const min = Math.floor(s / 60);
+            const sec = s % 60;
+            return `${min}:${sec.toString().padStart(2, '0')}`;
+          };
+
+          const getBreathText = () => {
+            let colorName = color.name.split(' ')[0];
+            if (color.id === 'red') colorName = '붉은';
+            else if (color.id === 'blue' || color.id === 'navy') colorName = '푸른';
+            else if (color.id === 'green') colorName = '초록';
+            
+            if (phase === 'inhale') return `맑은 ${colorName}빛 공기를 들이마십니다.`;
+            if (phase === 'hold') return "잠시 그 에너지를 머금습니다.";
+            return "모든 긴장을 내뱉습니다.";
+          };
+
+          return (
+            <div className={`fixed inset-0 ${color.bg} transition-colors duration-[4000ms] flex flex-col items-center justify-between p-12 text-white z-50`}>
+              <header className="w-full flex justify-between items-center opacity-70">
+                <span className="text-xs font-bold tracking-[0.2em] uppercase">{color.keyword} Ritual</span>
+                <button onClick={onComplete} className="text-sm font-medium">EXIT</button>
+              </header>
+
+              <div className="flex flex-col items-center space-y-12 w-full max-w-xs text-center">
+                <div className={`w-48 h-48 rounded-full border-2 border-white/20 flex items-center justify-center relative`}>
+                    <div className={`absolute inset-0 rounded-full border-2 border-white transition-all duration-[4000ms] ease-in-out ${phase === 'inhale' ? 'scale-110 opacity-60' : 'scale-75 opacity-20'}`} />
+                    <div className="text-4xl font-light tracking-widest">{formatTime(timeLeft)}</div>
+                </div>
+
+                <div className="space-y-4 h-24 flex flex-col justify-center">
+                  <p className="text-xl font-light leading-relaxed animate-pulse transition-all duration-[2000ms]">
+                    {getBreathText()}
+                  </p>
+                  <div className="flex items-center justify-center space-x-2 opacity-50">
+                    <Volume2 size={16} />
+                    <span className="text-[10px] uppercase font-bold tracking-widest">Ambient White Noise</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 w-full pt-10">
+                  <p className="text-xs font-medium opacity-60 italic">Visual Guide</p>
+                  <p className="text-sm font-light leading-snug break-keep">
+                    "{color.visual}"을(를) 머릿속에 그려보세요.
+                  </p>
+                </div>
+              </div>
+
+              <footer className="w-full opacity-40 text-center">
+                <p className="text-[10px] tracking-widest">GWAENCHA DIGITAL TEA THERAPY</p>
+              </footer>
+            </div>
+          );
+        }
+
+        function App() {
+          const [view, setView] = useState('main'); // main, test, result, ritual, history
+          const [selectedColor, setSelectedColor] = useState(null);
+          const [testStep, setTestStep] = useState(0);
+          const [testResults, setTestResults] = useState([]);
+          const [history, setHistory] = useState([]);
+          const [fortune, setFortune] = useState(null);
+
+          useEffect(() => {
+            const saved = localStorage.getItem('gwaencha_history');
+            if (saved) setHistory(JSON.parse(saved));
+          }, []);
+
+          const saveHistory = (colorId) => {
+            const newEntry = {
+              date: new Date().toISOString(),
+              colorId
+            };
+            const newHistory = [...history, newEntry];
+            setHistory(newHistory);
+            localStorage.setItem('gwaencha_history', JSON.stringify(newHistory));
+          };
+
+          const handleColorChoice = (colorId) => {
+            setSelectedColor(COLORS_DATA[colorId]);
+            setView('result');
+          };
+
+          const startTest = () => {
+            setTestStep(0);
+            setTestResults([]);
+            setView('test');
+          };
+
+          const handleTestAnswer = (color) => {
+            const newResults = [...testResults, color];
+            if (testStep < QUESTIONS.length - 1) {
+              setTestResults(newResults);
+              setTestStep(testStep + 1);
+            } else {
+              const counts = newResults.reduce((acc, c) => {
+                acc[c] = (acc[c] || 0) + 1;
+                return acc;
+              }, {});
+              // Handle case where counts might be equal, just pick first one
+              const winner = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+              setSelectedColor(COLORS_DATA[winner]);
+              setView('result');
+            }
+          };
+
+          const showFortune = () => {
+            setFortune(selectedColor.affirmation);
+          };
+
+          const renderMain = () => (
+            <div className="flex flex-col items-center justify-center min-h-screen px-6 py-12 bg-white animate-in fade-in duration-700">
+              <div className="w-full max-w-md space-y-12">
+                <header className="text-center space-y-2">
+                  <h1 className="text-4xl font-light tracking-tighter text-gray-800">괜차 <span className="text-sm font-medium text-gray-400">Gwaencha</span></h1>
+                  <p className="text-gray-500 font-light">지금, 당신의 마음이 머무는 색은 무엇인가요?</p>
+                </header>
+
+                <div className="grid grid-cols-3 gap-4 justify-items-center">
+                  {Object.values(COLORS_DATA).map((color, index, array) => (
+                    <button
+                      key={color.id}
+                      onClick={() => handleColorChoice(color.id)}
+                      className={`group flex flex-col items-center space-y-2 focus:outline-none ${
+                        index === array.length - 1 ? 'col-start-2' : ''
+                      }`}
+                    >
+                      <div 
+                        className={`w-16 h-16 rounded-full ${color.bg} shadow-lg shadow-black/5 transform transition-transform group-active:scale-90 duration-300`}
+                      />
+                      <span className="text-xs text-gray-400 font-medium">{color.id.toUpperCase()}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-4 pt-8">
+                  <button 
+                    onClick={startTest}
+                    className="w-full py-4 border border-gray-100 rounded-2xl flex items-center justify-between px-6 text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Sparkles size={18} className="text-amber-400" />
+                      <span className="text-sm font-medium">색을 고르기 어려우신가요?</span>
+                    </div>
+                    <ChevronRight size={18} />
+                  </button>
+                  
+                  <button 
+                    onClick={() => setView('history')}
+                    className="w-full py-4 border border-gray-100 rounded-2xl flex items-center justify-between px-6 text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <CalendarIcon size={18} className="text-blue-400" />
+                      <span className="text-sm font-medium">나의 컬러 기록 보기</span>
+                    </div>
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+
+          const renderTest = () => (
+            <div className="flex flex-col items-center justify-center min-h-screen px-6 bg-gray-50 animate-in slide-in-from-right duration-500">
+              <div className="w-full max-w-md space-y-8">
+                <div className="flex items-center justify-between mb-8">
+                  <button onClick={() => setView('main')} className="text-gray-400"><ChevronLeft /></button>
+                  <span className="text-xs font-bold text-gray-300 tracking-widest">{testStep + 1} / {QUESTIONS.length}</span>
+                  <div className="w-6" />
+                </div>
+
+                <h2 className="text-2xl font-light text-gray-800 leading-snug mb-12">
+                  {QUESTIONS[testStep].q}
+                </h2>
+
+                <div className="space-y-3">
+                  {QUESTIONS[testStep].options.map((opt, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleTestAnswer(opt.color)}
+                      className="w-full p-6 bg-white border border-gray-100 rounded-3xl text-left text-gray-700 hover:border-blue-200 transition-all active:scale-[0.98]"
+                    >
+                      {opt.text}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+
+          const renderResult = () => (
+            <div className={`min-h-screen ${selectedColor.lightBg} animate-in fade-in duration-1000 overflow-y-auto pb-20`}>
+              <div className="max-w-md mx-auto p-6 space-y-8">
+                <button onClick={() => setView('main')} className="mt-4 p-2 bg-white/50 backdrop-blur rounded-full text-gray-600">
+                  <ChevronLeft />
+                </button>
+
+                <header className="space-y-2 text-center pt-4">
+                  <div className={`inline-block px-3 py-1 rounded-full ${selectedColor.bg} text-white text-[10px] font-bold tracking-widest mb-2`}>
+                    {selectedColor.chakra}
+                  </div>
+                  <h2 className={`text-3xl font-bold ${selectedColor.text}`}>{selectedColor.keyword}</h2>
+                  <p className="text-gray-500 font-medium">당신을 위한 컬러 처방전</p>
+                </header>
+
+                <section className="bg-white/70 backdrop-blur-md rounded-[40px] p-8 space-y-6 shadow-sm">
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 text-gray-400 uppercase text-[10px] font-bold tracking-widest">
+                      <Info size={14} />
+                      <span>심리 상태 분석</span>
+                    </div>
+                    <p className="text-gray-700 leading-relaxed font-light text-lg italic">
+                      "{selectedColor.diagnosis}"
+                    </p>
+                  </div>
+
+                  <hr className="border-gray-100" />
+
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2 text-gray-400 uppercase text-[10px] font-bold tracking-widest">
+                      <Coffee size={14} />
+                      <span>추천 티 레시피</span>
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-bold text-gray-800">{selectedColor.tea}</h3>
+                      <p className="text-sm text-gray-500 font-light">{selectedColor.teaDesc}</p>
+                    </div>
+                    <div className={`p-4 ${selectedColor.bg} bg-opacity-10 rounded-2xl border border-white`}>
+                      <span className={`text-sm font-medium ${selectedColor.text}`}>{selectedColor.prescription}</span>
+                    </div>
+                  </div>
+                </section>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <button 
+                    onClick={() => setView('ritual')}
+                    className={`w-full py-5 rounded-3xl ${selectedColor.bg} text-white font-bold flex items-center justify-center space-x-3 shadow-lg transform active:scale-95 transition-all`}
+                  >
+                    <Timer size={20} />
+                    <span>3분 리추얼 플레이어 시작</span>
+                  </button>
+
+                  <div className="flex gap-4">
+                    <button 
+                      onClick={showFortune}
+                      className="flex-1 py-4 bg-white rounded-2xl text-gray-600 font-medium text-sm flex items-center justify-center space-x-2 shadow-sm"
+                    >
+                      <Sparkles size={16} className="text-amber-400" />
+                      <span>오늘의 행운</span>
+                    </button>
+                    <button 
+                      onClick={() => {
+                        saveHistory(selectedColor.id);
+                        alert('기록되었습니다.');
+                      }}
+                      className="flex-1 py-4 bg-white rounded-2xl text-gray-600 font-medium text-sm flex items-center justify-center space-x-2 shadow-sm"
+                    >
+                      <CheckCircle2 size={16} className="text-green-400" />
+                      <span>오늘의 기록</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {fortune && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-6 z-50 animate-in fade-in zoom-in duration-300">
+                  <div className="bg-white rounded-[40px] p-10 text-center space-y-6 max-w-xs shadow-2xl">
+                    <div className={`w-12 h-12 mx-auto rounded-full ${selectedColor.bg} flex items-center justify-center text-white`}>
+                      <Sparkles size={24} />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold text-gray-400 tracking-widest uppercase">Affirmation</p>
+                      <p className="text-xl font-light text-gray-800 break-keep leading-relaxed italic">
+                        "{fortune}"
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => setFortune(null)}
+                      className={`w-full py-4 ${selectedColor.bg} text-white rounded-2xl font-bold text-sm`}
+                    >
+                      간직하기
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+
+          const renderHistory = () => (
+            <div className="min-h-screen bg-white animate-in slide-in-from-bottom duration-500 overflow-y-auto pb-12">
+              <div className="max-w-md mx-auto p-6 space-y-8">
+                <header className="flex items-center justify-between pt-4">
+                  <button onClick={() => setView('main')} className="text-gray-400"><ChevronLeft /></button>
+                  <h2 className="text-lg font-bold text-gray-800">나의 컬러 달력</h2>
+                  <div className="w-6" />
+                </header>
+
+                <div className="space-y-6">
+                  <p className="text-sm text-gray-400 font-light text-center">최근 당신이 선택한 감정의 흐름입니다.</p>
+                  
+                  {history.length === 0 ? (
+                    <div className="text-center py-20 text-gray-300">
+                      아직 기록된 컬러가 없습니다.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-4 gap-4">
+                      {history.map((entry, idx) => {
+                        const color = COLORS_DATA[entry.colorId];
+                        if (!color) return null;
+                        return (
+                          <div key={idx} className="flex flex-col items-center space-y-2">
+                            <div className={`w-12 h-12 rounded-2xl ${color.bg} shadow-sm animate-in zoom-in duration-500`} />
+                            <span className="text-[10px] text-gray-400">{new Date(entry.date).toLocaleDateString('ko-KR', {month:'short', day:'numeric'})}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                
+                {history.length > 0 && (
+                  <div className="p-6 bg-gray-50 rounded-[30px] space-y-4">
+                     <h3 className="text-sm font-bold text-gray-600 flex items-center gap-2">
+                       <Info size={14} /> 괜차의 조언
+                     </h3>
+                     <p className="text-xs text-gray-500 leading-relaxed">
+                       기록된 데이터를 분석해 보세요. <br/>
+                       만약 특정 색이 반복된다면, 당신의 마음이 어떤 에너지에 목말라 있는지 혹은 무엇에 집중하고 있는지 알려주는 신호입니다.
+                     </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+
+          return (
+            <div className="font-sans antialiased text-gray-900 bg-gray-50 selection:bg-blue-100 min-h-screen">
+              {view === 'main' && renderMain()}
+              {view === 'test' && renderTest()}
+              {view === 'result' && renderResult()}
+              {view === 'ritual' && renderRitual()}
+              {view === 'history' && renderHistory()}
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
+
+
+
+);
         const Volume2 = ({ size = 24, className }) => (
             <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
         );
